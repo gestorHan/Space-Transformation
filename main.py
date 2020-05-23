@@ -8,8 +8,8 @@ def init(H, W, Title):
 
 class XY:
     def __init__(self, x, y):
-        self.x = int(x)
-        self.y = int(y)
+        self.x = x
+        self.y = y
 
     def add(self, point):
         return (self.x + point.x, self.y + point.y)
@@ -29,7 +29,10 @@ class Axis:
     refSpace = 50
 
     def __init__(self, center: XY):
-        self.center = center
+        self.center = XY (int(center.x) ,int (center.y))
+    
+    def ref2T (self, tuple2):
+        return (self.refX(tuple2[0]),self.refY(tuple2[1]))
 
     def refX(self, n: float):
         return int(n*self.refSpace + self.center.x)
@@ -51,13 +54,25 @@ class Axis:
 class Line:
     width = 2
 
-    def __init__(self, start: XY, end: XY):
-        self.start = start
-        self.end = end
+    def __init__(self, startX , startY , endX , endY):
+        self.start = XY(startX, startY)
+        self.end = XY(endX , endY)
 
     def drawInAxis(self, axis, win):
         pygame.draw.line(win, (255, 255, 0), (axis.refX(self.start.x), axis.refY(
             self.start.y)), (axis.refX(self.end.x), axis.refY(self.end.y)), self.width)
+
+class Polygon:
+    width = 2
+    def __init__(self ,points):
+        self.points = points
+        
+
+    def drawInAxis(self,axis:Axis,win):
+        truePoints = map( axis.ref2T,self.points)
+        #print(truePoints)
+        #print(type(truePoints))
+        pygame.draw.polygon(win ,(255,0,50),list(truePoints),self.width)
 
 class Rectangle:
     def __init__(self, pos: XY, width, height):
@@ -89,7 +104,25 @@ if __name__ == "__main__":
 
     w, h = pygame.display.get_surface().get_size()
     axis = Axis(XY(w/2, h/2))
-    line = Line(XY(1, 1), XY(2, 3))
+
+    lines =[
+        Line(-0.5,0.5,4.5,1.5),
+        Line(4.5,1.5,1.5,3.5),
+        Line(1.5,3.5,-0.5,0.5),
+    ]
+
+    triangle = Polygon([(-0.5,0.5),
+                        (4.5,1.5),
+                        (1.5,3.5)])
+    
+    quadrilateral = Polygon([
+        (0,1),
+        (0,-1),
+        (1,0),
+        (-1,0)
+    ])
+    triangle.drawInAxis(axis , win)
+#    line = Line(0,0,2,3)
     run = True
 
     while run:
@@ -99,7 +132,10 @@ if __name__ == "__main__":
                 run = False
         checkActions(pygame.key.get_pressed(),axis,win)
         win.fill((0, 0, 0))
-        line.drawInAxis(axis, win)
+        
         axis.draw(win)
-
+        triangle.drawInAxis(axis , win)
+        quadrilateral.drawInAxis(axis , win)
+        #for line in lines:
+        #    line.drawInAxis(axis, win)
         pygame.display.update()
