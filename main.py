@@ -85,7 +85,7 @@ def checkActions (keys , axis ,win):
 
 if __name__ == "__main__":
 
-    win = init(500, 600, "Graficos y transformaciones")
+    win = init(500, 600, "2D graphs and transformations")
 
     w, h = pygame.display.get_surface().get_size()
     axis = Axis(XY(w/2, h/2))
