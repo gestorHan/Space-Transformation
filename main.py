@@ -2,7 +2,7 @@ import pygame
 
 def init(H, W, Title):
     pygame.init()
-    win = pygame.display.set_mode((800, 800))
+    win = pygame.display.set_mode((900, 900))
     pygame.display.set_caption(Title)
     pygame.font.init()
     return win
@@ -95,8 +95,8 @@ def checkActions(keys, axis, win):
         for ax in axis:
             ax.refSpace += ax.refZoom
         
-        axis[0].center[0] = axis[1].refX(((axis[0].center[0] - axis[1].center[0])/axis[1].refSpace))
-        axis[0].center[1] = axis[1].refY(((axis[0].center[1] - axis[1].center[1])/axis[1].refSpace))
+#        axis[0].center[0] = axis[1].refX(((axis[0].center[0] - axis[1].center[0])/axis[1].refSpace))
+#       axis[0].center[1] = axis[1].refY(((axis[0].center[1] - axis[1].center[1])/axis[1].refSpace))
 
     if keys[pygame.K_y] and axis[0].refSpace > axis[0].refZoom:
         for ax in axis:
