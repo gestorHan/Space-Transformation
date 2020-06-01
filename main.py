@@ -7,64 +7,51 @@ def init(H, W, Title):
     pygame.font.init()
     return win
 
-class XY:
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
-
-    def add(self, point):
-        return (self.x + point.x, self.y + point.y)
-
-    def adx(self, x0):
-        self.x += x0
-
-    def ady(self, y0):
-        self.y += y0
-
-
 class Axis:
-
     vel = 2
     pxWidth = 1
     refRad = 3
     refZoom = 2
     refSpace = 50
 
-    def __init__(self, center: XY, color):
-        self.center = XY(int(center.x), int(center.y))
+    def __init__(self, center, color):
+        self.center = (int(center[0]), int(center[1]))
         self.color = color
         
     def ref2T(self, tuple2):
         return (self.refX(tuple2[0]), self.refY(tuple2[1]))
-
     def refX(self, n: float):
-        return int(n*self.refSpace + self.center.x)
-
+        return int(n*self.refSpace + self.center[0])
     def refY(self, n: float):
-        return int(-n * self.refSpace + self.center.y)
+        return int(-n * self.refSpace + self.center[1])
+
+    def centerAdx (self , dx):
+        self.center = (self.center[0]+int (dx)  , self.center[1])
+    def centerAdy (self , dy):
+        self.center = (self.center[0] , self.center[1] + int(dy))
 
     def draw(self, win: pygame.Surface):
-        pygame.draw.line(win, self.color, (self.center.x, 0),
-                         (self.center.x, h), self.pxWidth)
-        pygame.draw.line(win, self.color, (0, self.center.y),
-                         (w, self.center.y), self.pxWidth)
+        pygame.draw.line(win, self.color, (self.center[0], 0),
+                         (self.center[0], h), self.pxWidth)
+        pygame.draw.line(win, self.color, (0, self.center[1]),
+                         (w, self.center[1]), self.pxWidth)
         self.drawReferences(win)
 
     def drawReferences(self, win: pygame.Surface):
         for i in range(win.get_width()//(self.refSpace) + 1):
             pygame.draw.circle(win, self.color, (i*self.refSpace +
-                               (self.center.x % self.refSpace),  self.center.y), self.refRad)
+                               (self.center[0] % self.refSpace),  self.center[1]), self.refRad)
         for i in range(win.get_height()//(self.refSpace) + 1):
-            pygame.draw.circle(win, self.color, (self.center.x,
-                               (self.center.y % self.refSpace) + i*self.refSpace), self.refRad)
+            pygame.draw.circle(win, self.color, (self.center[0],
+                               (self.center[1] % self.refSpace) + i*self.refSpace), self.refRad)
 
 
 class Line:
     width = 2
 
     def __init__(self, startX, startY, endX, endY):
-        self.start = XY(startX, startY)
-        self.end = XY(endX, endY)
+        self.start = (startX, startY)
+        self.end = (endX, endY)
 
     def drawInAxis(self, axis, win):
         pygame.draw.line(win, (255, 255, 0), (axis.refX(self.start.x), axis.refY(
@@ -73,8 +60,8 @@ class Line:
 class LineSet:
     width = 2
     def __init__(self, startX, startY, endX, endY):
-        self.start = XY(startX, startY)
-        self.end = XY(endX, endY)
+        self.start = (startX, startY)
+        self.end = (endX, endY)
 
     def drawInAxis(self, axis, win):
         pygame.draw.line(win, (255, 255, 0), (axis.refX(self.start.x), axis.refY(
@@ -94,21 +81,22 @@ class Polygon:
 
 
 def checkActions(keys, axis, win):
+    
     if keys[pygame.K_LEFT]:
-        axis[0].center.adx(-axis[0].vel)
+        axis[0].centerAdx(-axis[0].vel)
     if keys[pygame.K_RIGHT]:
-        axis[0].center.adx(axis[0].vel)
+        axis[0].centerAdx(axis[0].vel)
     if keys[pygame.K_UP]:
-        axis[0].center.ady(-axis[0].vel)
+        axis[0].centerAdy(-axis[0].vel)
     if keys[pygame.K_DOWN]:
-        axis[0].center.ady(axis[0].vel)
+        axis[0].centerAdy(axis[0].vel)
     if keys[pygame.K_u] and axis[0].refSpace <= win.get_width()/2:
         
         for ax in axis:
             ax.refSpace += ax.refZoom
         
-        axis[0].center.x = axis[1].refX(((axis[0].center.x - axis[1].center.x)/axis[1].refSpace))
-        axis[0].center.y = axis[1].refY(((axis[0].center.y - axis[1].center.y)/axis[1].refSpace))
+        axis[0].center[0] = axis[1].refX(((axis[0].center[0] - axis[1].center[0])/axis[1].refSpace))
+        axis[0].center[1] = axis[1].refY(((axis[0].center[1] - axis[1].center[1])/axis[1].refSpace))
 
     if keys[pygame.K_y] and axis[0].refSpace > axis[0].refZoom:
         for ax in axis:
@@ -121,8 +109,8 @@ def drawMouseCursor(win):
 
 def printMousePosWin(win,font, axis):
     x, y = pygame.mouse.get_pos()
-    x = round((x-axis.center.x)/axis.refSpace,2)
-    y = -round((y-axis.center.y)/axis.refSpace,2)
+    x = round((x-axis.center[0])/axis.refSpace,2)
+    y = -round((y-axis.center[1])/axis.refSpace,2)
     textsurface = font.render(str(x)+" "+str(y), False, (255, 0, 0))        
     win.blit(textsurface, dest=(0,0))
 
@@ -144,8 +132,8 @@ if __name__ == "__main__":
     font = pygame.font.Font(pygame.font.get_default_font(), 36)
     w, h = pygame.display.get_surface().get_size()
 
-    axis = Axis(XY(w/2, h/2) , (255,255,0))
-    axisBase = Axis(XY(w/2, h/2) , (100,0,0))
+    axis = Axis((w/2, h/2) , (255,255,0))
+    axisBase = Axis((w/2, h/2) , (100,0,0))
     axises = [axis , axisBase]
     triangle = Polygon([(-0.5,0.5),
                         (4.5,1.5),
